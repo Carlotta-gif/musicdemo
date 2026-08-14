@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="musicdemo-api-origin" content="">
+  <meta name="musicdemo-share-origin" content="">
+  <meta name="description" content="把一闪而过的文字灵感，快速变成可以试听与分享的词曲 Demo。">
+  <title>SongSeed · 词曲 Demo 创作</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <section id="auth-screen" class="auth-screen" hidden>
+    <div class="auth-card">
+      <span class="auth-record" aria-hidden="true"><i></i></span>
+      <p class="eyebrow">SONGSEED</p>
+      <h1 id="auth-title">登录 SongSeed</h1>
+      <p id="auth-copy">回到你的灵感、Demo 和协作评价。</p>
+      <form id="auth-form">
+        <label><span class="field-label">用户名</span><input id="auth-username" maxlength="20" autocomplete="username" required placeholder="输入用户名"></label>
+        <label><span class="field-label">密码</span><input id="auth-password" type="password" minlength="6" maxlength="72" autocomplete="current-password" required placeholder="至少 6 位"></label>
+        <button class="primary-button" type="submit"><span id="auth-submit-text">登录</span><b aria-hidden="true">→</b></button>
+      </form>
+      <button id="auth-toggle" class="auth-toggle" type="button">没有账户？立即注册</button>
+      <button id="guest-button" class="auth-guest" type="button" hidden>以游客身份打开 Demo</button>
+      <p class="auth-demo-note">测试账户：ck / pjr / djw，初始密码均为 123456</p>
+    </div>
+  </section>
+
+  <header class="site-header">
+    <a class="brand" href="/studio" data-route="studio" aria-label="SongSeed 首页">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>SongSeed <small>LET IDEAS GROW</small></span>
+    </a>
+    <div class="header-pitch">
+      <strong>让灵感，<em>先响起来。</em></strong>
+      <span>从一句话到可分享的音乐 Demo</span>
+    </div>
+    <nav id="main-nav" aria-label="主导航">
+      <details id="friends-menu" class="nav-menu friend-nav-menu">
+        <summary class="nav-link">好友 <em id="friend-nav-badge" hidden>0</em><i class="nav-caret" aria-hidden="true"></i></summary>
+        <div class="friend-nav-dropdown">
+          <details id="add-friend-panel" class="friend-section" open>
+            <summary>
+              <span>添加朋友</span>
+              <em id="friend-request-count">0</em>
+            </summary>
+            <form id="friend-search-form" class="friend-search-form">
+              <input id="friend-search-input" maxlength="20" placeholder="搜索用户名" aria-label="搜索用户名">
+              <select id="friend-search-mode" aria-label="搜索方式">
+                <option value="fuzzy">模糊搜索</option>
+                <option value="exact">精确搜索</option>
+              </select>
+              <button type="submit">搜索</button>
+            </form>
+            <div id="friend-request-list" class="friend-request-list"></div>
+            <div id="friend-search-results" class="friend-search-results"></div>
+          </details>
+          <details id="my-friends-panel" class="friend-section" open>
+            <summary>
+              <span>查看我的好友</span>
+              <em id="friend-unread-count">0</em>
+            </summary>
+            <div id="friend-list" class="friend-list"></div>
+            <section id="friend-chat" class="friend-chat" hidden>
+              <header>
+                <button id="close-friend-chat" type="button" aria-label="返回好友列表">←</button>
+                <strong id="friend-chat-name">好友</strong>
+              </header>
+              <div id="friend-messages" class="friend-messages"></div>
+              <form id="friend-message-form">
+                <input id="friend-message-input" maxlength="1000" placeholder="发送一条消息…" required>
+                <button type="submit">发送</button>
+              </form>
+            </section>
+          </details>
+        </div>
+      </details>
+      <button class="nav-link" data-view="inspirations">灵感记录</button>
+      <button class="nav-link active" data-view="studio">创作台</button>
+      <details id="my-menu" class="nav-menu">
+        <summary class="nav-link">我的 <i class="nav-caret" aria-hidden="true"></i></summary>
+        <div class="nav-dropdown">
+          <button type="button" data-library-section="mine">
+            <span><b>我的 Demo</b><small>查看和管理自己的作品</small></span>
+            <em id="project-count">0</em>
+          </button>
+          <button type="button" data-library-section="received">
+            <span><b>分享给我的 Demo</b><small>查看别人邀请你试听的作品</small></span>
+            <em id="received-count">0</em>
+          </button>
+          <button type="button" data-library-section="collaborations">
+            <span><b>Demo 接力</b><small>查看收到和参与的接力成果</small></span>
+            <em id="collaboration-count">0</em>
+          </button>
+        </div>
+      </details>
+    </nav>
+    <details id="account-menu" class="account-menu">
+      <summary><span id="account-avatar">C</span><b id="account-name">未登录</b><i class="nav-caret" aria-hidden="true"></i></summary>
+      <div>
+        <small>本地账户</small>
+        <button id="logout-button" type="button">退出登录</button>
+      </div>
+    </details>
+  </header>
+
+  <main>
+    <section id="inspirations-view" class="view" hidden>
+      <div class="inspirations-head">
+        <div>
+          <p class="eyebrow">IDEA NOTEBOOK</p>
+          <h1>先把灵感留下来</h1>
+          <p>不必完整，一句话、一个场景或一个声音都值得保存。</p>
+        </div>
+        <button class="outline-button" data-view="studio">返回创作台</button>
+      </div>
+      <div class="inspirations-layout">
+        <form id="inspiration-record-form" class="inspiration-record-card">
+          <span class="idea-note-icon" aria-hidden="true">♪</span>
+          <h2>记录此刻</h2>
+          <p>先写下来，之后再慢慢把它变成歌。</p>
+          <label>
+            <span class="field-label">灵感内容</span>
+            <textarea id="inspiration-record-content" maxlength="1000" placeholder="例如：雨停以后，便利店门口只剩下自动门的声音……"></textarea>
+          </label>
+          <div class="audio-inspiration compact" data-audio-uploader="record">
+            <input id="record-audio-file" type="file" accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,audio/*" hidden>
+            <button class="audio-dropzone" type="button" data-audio-pick="record">
+              <span class="upload-icon" aria-hidden="true">＋</span>
+              <span><b>附上一段声音</b><small>哼唱、旋律或环境声 · 最大 50 MB</small></span>
+            </button>
+            <div class="audio-uploaded" data-audio-preview="record" hidden></div>
+          </div>
+          <div class="voice-record">
+            <button id="hold-record-button" class="hold-record-button" type="button" aria-label="按住录音，松开后自动保存">
+              <i aria-hidden="true"></i>
+              <span id="hold-record-text">按住 说话</span>
+              <em id="hold-record-time">00:00</em>
+            </button>
+            <small id="voice-record-help">按住开始录音，松开后自动保存到灵感记录</small>
+          </div>
+          <button class="primary-button" type="submit"><span>保存这条灵感</span><b aria-hidden="true">↗</b></button>
+        </form>
+        <section class="inspiration-list-card">
+          <div class="inspiration-list-head">
+            <div>
+              <p class="eyebrow">SAVED IDEAS</p>
+              <h2>灵感记录</h2>
+            </div>
+            <span id="inspiration-record-count">0 条</span>
+          </div>
+          <div id="inspiration-record-list" class="inspiration-record-list"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="studio-view" class="view">
+      <div class="studio-grid">
+        <form id="creation-form" class="composer-card">
+          <div class="card-heading">
+            <span class="step-number" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M9 17V6l9-2v11"></path>
+                <circle cx="6.5" cy="17" r="2.5"></circle>
+                <circle cx="15.5" cy="15" r="2.5"></circle>
+              </svg>
+            </span>
+            <div>
+              <h2>选择你的创作起点</h2>
+              <p>从一个画面、一段歌词，或一首纯音乐开始。</p>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <span class="field-label">创作入口</span>
+            <div class="creation-switch" role="group" aria-label="创作入口">
+              <button type="button" class="mode-option active" data-mode="inspiration" aria-pressed="true">
+                <span class="mode-icon">✦</span>
+                <span><b>灵感生成</b><small>关键词 / 情绪 / 场景</small></span>
+              </button>
+              <button type="button" class="mode-option" data-mode="lyrics" aria-pressed="false">
+                <span class="mode-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M4 5.5c2.8-.8 5.5-.3 8 1.5v12c-2.5-1.8-5.2-2.3-8-1.5v-12Z"></path>
+                    <path d="M20 5.5c-2.8-.8-5.5-.3-8 1.5v12c2.5-1.8 5.2-2.3 8-1.5v-12Z"></path>
+                  </svg>
+                </span>
+                <span><b>自写歌词</b><small>用你的歌词谱成歌</small></span>
+              </button>
+              <button type="button" class="mode-option" data-mode="instrumental" aria-pressed="false">
+                <span class="mode-icon">♪</span>
+                <span><b>纯音乐</b><small>场景生成无人声配乐</small></span>
+              </button>
+            </div>
+          </div>
+
+          <label class="inspiration-field">
+            <span id="inspiration-label" class="field-label">描述你的灵感</span>
+            <textarea id="inspiration" maxlength="500" placeholder="例如：凌晨两点的末班车，我在玻璃倒影里看见了去年的自己……"></textarea>
+            <span class="field-footer"><b id="char-count">0</b>/<span id="char-limit">500</span></span>
+            <small id="inspiration-help" class="field-help">MiniMax 会根据描述自动作词并生成完整歌曲。</small>
+          </label>
+
+          <div class="audio-inspiration" data-audio-uploader="studio">
+            <div class="audio-upload-head">
+              <span class="field-label">音频灵感 <em>可选</em></span>
+              <small>上传哼唱、旋律草稿或现场录音</small>
+            </div>
+            <input id="studio-audio-file" type="file" accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,audio/*" hidden>
+            <button class="audio-dropzone" type="button" data-audio-pick="studio">
+              <span class="upload-icon" aria-hidden="true">＋</span>
+              <span><b>添加音频参考</b><small>点击选择或拖入 MP3 / WAV / M4A / AAC / OGG / FLAC，最大 50 MB</small></span>
+            </button>
+            <div class="audio-uploaded" data-audio-preview="studio" hidden></div>
+          </div>
+
+          <div id="lyrics-assistant" class="lyrics-assistant" hidden>
+            <div class="assistant-heading">
+              <span class="deepseek-mark">DS</span>
+              <span><b>DeepSeek 歌词助手</b><small id="deepseek-status">可选 · 免费额度接口</small></span>
+            </div>
+            <div class="assistant-actions">
+              <select id="deepseek-action" aria-label="DeepSeek 歌词处理方式">
+                <option value="polish">润色：保留原意与段落</option>
+                <option value="expand">扩写：补全主歌和副歌</option>
+              </select>
+              <button id="deepseek-button" type="button">使用 DeepSeek</button>
+            </div>
+            <small>处理结果会回填到歌词框，确认后再生成音乐。</small>
+          </div>
+
+          <div class="field-group">
+            <span class="field-label">歌曲生成方式</span>
+            <div class="provider-switch" role="group" aria-label="音乐生成方式">
+              <button type="button" class="provider-option active" data-provider="minimax">
+                <span class="provider-icon">AI</span>
+                <span><b>MiniMax 智能生成</b><small>上传哼唱时自动使用 music-cover-free</small></span>
+              </button>
+              <button type="button" class="provider-option" data-provider="local">
+                <span class="provider-icon">♪</span>
+                <span><b>本地极速合成</b><small>18 秒器乐草稿 · 永久免费</small></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <span class="field-label">音乐风格</span>
+            <div class="choice-row" data-choice="style">
+              <button type="button" class="choice active" data-value="流行">流行</button>
+              <button type="button" class="choice" data-value="民谣">民谣</button>
+              <button type="button" class="choice" data-value="R&B">R&B</button>
+              <button type="button" class="choice" data-value="摇滚">摇滚</button>
+              <button type="button" class="choice" data-value="电子">电子</button>
+            </div>
+          </div>
+
+          <div id="variation-field" class="field-group" hidden>
+            <span class="field-label">希望这次编曲有多不一样</span>
+            <div class="choice-row" data-choice="variation" role="group" aria-label="编曲变化强度">
+              <button type="button" class="choice" data-value="稳妥" aria-pressed="false">稳妥</button>
+              <button type="button" class="choice active" data-value="明显" aria-pressed="true">明显</button>
+              <button type="button" class="choice" data-value="实验" aria-pressed="false">实验</button>
+            </div>
+            <small class="field-help">明显：改变子风格、配器和段落反差；实验：允许变拍、停顿和非常规音色。</small>
+          </div>
+
+          <div class="settings-row">
+            <label>
+              <span class="field-label">情绪氛围</span>
+              <select id="mood">
+                <option>治愈</option>
+                <option>浪漫</option>
+                <option>忧伤</option>
+                <option>热烈</option>
+                <option>梦幻</option>
+                <option>平静</option>
+                <option>温暖</option>
+                <option>孤独</option>
+                <option>怀旧</option>
+                <option>希望</option>
+                <option>神秘</option>
+                <option>压抑</option>
+                <option>热血</option>
+              </select>
+            </label>
+            <label id="vocal-setting">
+              <span class="field-label">人声想象</span>
+              <select id="vocal">
+                <option>温暖女声</option>
+                <option>清澈男声</option>
+                <option>慵懒女声</option>
+                <option>少年感男声</option>
+                <option>空灵女声</option>
+                <option>力量女声</option>
+                <option>甜美女声</option>
+                <option>磁性男声</option>
+                <option>低沉男声</option>
+                <option>烟嗓男声</option>
+                <option>中性声线</option>
+              </select>
+            </label>
+            <label>
+              <span class="field-label">核心乐器</span>
+              <select id="instrument">
+                <option>自动配器</option>
+                <option>钢琴</option>
+                <option>木吉他</option>
+                <option>电吉他</option>
+                <option>弦乐</option>
+                <option>合成器</option>
+                <option>鼓组</option>
+                <option>贝斯</option>
+                <option>古筝</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="creation-actions">
+            <button id="save-draft-button" class="draft-button" type="button">
+              <span>暂存灵感</span>
+              <b aria-hidden="true">＋</b>
+            </button>
+            <button id="generate-button" class="primary-button" type="submit">
+              <span>生成我的 Demo</span>
+              <b aria-hidden="true">↗</b>
+            </button>
+          </div>
+          <p id="generation-note" class="free-note"><span>✓</span> MiniMax 免费接口 · 失败后可选择本地试听</p>
+        </form>
+
+        <section id="review-panel" class="review-panel" hidden>
+          <div class="review-heading">
+            <div>
+              <p class="eyebrow">VERSION NOTES</p>
+              <h2>评论与评价</h2>
+              <p id="review-version-title">为当前版本整理修改意见。</p>
+            </div>
+            <button id="back-to-creation" class="review-back" type="button">返回创作</button>
+          </div>
+          <form id="comment-form" class="comment-form">
+            <div class="comment-fields">
+              <label>
+                <span class="field-label">评论身份</span>
+                <input id="comment-author" value="当前登录用户" readonly aria-label="评论身份">
+              </label>
+              <label>
+                <span class="field-label">评价位置</span>
+                <select id="comment-section">
+                  <option>整体</option>
+                  <option>主歌</option>
+                  <option>副歌</option>
+                  <option>歌词</option>
+                  <option>编曲</option>
+                  <option>人声</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              <span class="field-label">写下评论</span>
+              <textarea id="comment-content" maxlength="600" required placeholder="例如：副歌情绪很好，如果鼓晚两拍进入，张力会更强……"></textarea>
+            </label>
+            <button class="primary-button" type="submit"><span>保存评论</span><b aria-hidden="true">↗</b></button>
+          </form>
+          <div class="comment-history">
+            <div class="comment-history-head">
+              <h3>历史评价</h3>
+              <span id="comment-count">0 条</span>
+            </div>
+            <div id="comment-list" class="comment-list"></div>
+          </div>
+        </section>
+
+        <aside id="preview-panel" class="preview-panel empty-state">
+          <div class="empty-art" aria-hidden="true">
+            <div class="record"></div>
+            <div class="empty-wave">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+          </div>
+          <p class="eyebrow">YOUR NEXT SONG</p>
+          <h2>下一首歌，正在等你。</h2>
+          <p>输入灵感后，这里会出现歌词、创作参数与可以立即播放的 Demo。</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="library-view" class="view" hidden>
+      <div class="library-head">
+        <div>
+          <p id="library-eyebrow" class="eyebrow">YOUR MUSIC SHELF</p>
+          <h1 id="library-title">我的 Demo</h1>
+          <p id="library-description">每一个版本，都是灵感生长过的证据。</p>
+        </div>
+        <button id="library-create-button" class="outline-button" data-view="studio">＋ 新建创作</button>
+      </div>
+      <div id="project-list" class="project-list"></div>
+    </section>
+
+    <section id="editor-view" class="view" hidden>
+      <div class="editor-head">
+        <div>
+          <p class="eyebrow">VERSION EDITOR</p>
+          <h1>编辑 Demo</h1>
+          <p>修改会保存为新版本，当前版本保持不变。</p>
+        </div>
+        <button id="editor-cancel" class="outline-button" type="button">返回我的 Demo</button>
+      </div>
+      <form id="version-editor-form" class="version-editor">
+        <section class="editor-card editor-basics">
+          <div class="editor-section-title"><span>01</span><div><h2>作品与版本</h2><p>设置歌曲标题和这一版的名称。</p></div></div>
+          <div class="editor-fields two-columns">
+            <label><span class="field-label">歌曲标题</span><input id="edit-title" maxlength="60" required></label>
+            <label><span class="field-label">版本名称</span><input id="edit-version-name" maxlength="40" required placeholder="例如：副歌加强版"></label>
+          </div>
+          <label><span class="field-label">歌词</span><textarea id="edit-lyrics" maxlength="3500" placeholder="纯音乐版本可以留空"></textarea></label>
+        </section>
+
+        <section class="editor-card">
+          <div class="editor-section-title"><span>02</span><div><h2>音频</h2><p>试听当前版本，并决定新版本是否重新生成音频。</p></div></div>
+          <audio id="edit-audio" controls preload="metadata"></audio>
+          <label><span class="field-label">音频处理</span>
+            <select id="edit-audio-mode">
+              <option value="stems" disabled>使用分轨调整重新混音</option>
+              <option value="regenerate">根据全部修改重新生成音频</option>
+              <option value="keep">保留当前音频，仅保存文字与版本信息</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="editor-card">
+          <div class="editor-section-title"><span>03</span><div><h2>音乐参数</h2><p>调整新版本的演唱和编曲方向。</p></div></div>
+          <div class="editor-fields three-columns">
+            <label><span class="field-label">音乐风格</span><select id="edit-style"><option>流行</option><option>民谣</option><option>R&B</option><option>摇滚</option><option>电子</option></select></label>
+            <label><span class="field-label">情绪</span><select id="edit-mood"><option>治愈</option><option>浪漫</option><option>忧伤</option><option>热烈</option><option>梦幻</option></select></label>
+            <label><span class="field-label">BPM</span><input id="edit-bpm" type="number" min="50" max="200" required></label>
+            <label><span class="field-label">人声</span><select id="edit-vocal"><option>温暖女声</option><option>清澈男声</option><option>慵懒女声</option><option>少年感男声</option><option>空灵女声</option><option>力量女声</option><option>甜美女声</option><option>磁性男声</option><option>低沉男声</option><option>烟嗓男声</option><option>中性声线</option><option>纯音乐</option></select></label>
+            <label><span class="field-label">核心乐器</span><select id="edit-instrument"><option>自动配器</option><option>钢琴</option><option>木吉他</option><option>电吉他</option><option>弦乐</option><option>合成器</option><option>鼓组</option><option>贝斯</option><option>古筝</option></select></label>
+            <label><span class="field-label">变化强度</span><select id="edit-variation"><option>稳妥</option><option>明显</option><option>实验</option></select></label>
+          </div>
+        </section>
+
+        <section class="editor-card editor-tracks">
+          <div class="editor-section-title">
+            <span>04</span>
+            <div>
+              <h2>真实音轨编辑</h2>
+              <p>把当前成品拆分成人声、鼓组、贝斯与其他乐器，再单独试听和调整。</p>
+            </div>
+          </div>
+          <div class="stem-toolbar">
+            <button id="edit-split-audio" class="outline-button" type="button">拆分当前音频</button>
+            <p id="edit-stem-status">尚未拆分音轨。</p>
+          </div>
+          <div id="edit-stem-workspace" class="stem-workspace" hidden>
+            <div id="edit-stem-list" class="stem-list" role="listbox" aria-label="选择要编辑的音轨"></div>
+            <div class="stem-inspector">
+              <div>
+                <span class="field-label">当前编辑音轨</span>
+                <h3 id="edit-stem-title">人声</h3>
+              </div>
+              <audio id="edit-stem-audio" controls preload="metadata"></audio>
+              <label>
+                <span class="field-label">音量 <output id="edit-stem-gain-value">100%</output></span>
+                <input id="edit-stem-gain" type="range" min="0" max="200" step="1" value="100">
+              </label>
+              <label class="stem-mute"><input id="edit-stem-muted" type="checkbox"> <span>在新版本中静音这条音轨</span></label>
+            </div>
+          </div>
+          <p class="stem-note">调整后选择“使用分轨重新混音”，保存时会渲染新的音频文件；原版本不会被覆盖。</p>
+        </section>
+
+        <button id="editor-save" class="primary-button editor-save" type="submit"><span>保存并生成新版本</span><b>↗</b></button>
+      </form>
+    </section>
+
+    <section id="share-view" class="view share-page" hidden>
+      <div id="share-loading" class="share-loading">
+        <div class="spinner"></div>
+        <p>正在打开这段灵感……</p>
+      </div>
+      <div id="share-content"></div>
+    </section>
+  </main>
+
+  <dialog id="share-dialog">
+    <form id="share-form" method="dialog">
+      <button id="close-share-dialog" class="dialog-close" type="button" aria-label="关闭分享窗口">×</button>
+      <p class="eyebrow">PRIVATE LISTENING</p>
+      <h2>把 Demo 递给对的人</h2>
+      <p>链接默认 7 天有效。可增加访问口令，让分享更私密。</p>
+      <input id="share-version-id" type="hidden">
+      <label>
+        <span class="field-label">访问口令（可选）</span>
+        <input id="access-code" maxlength="12" placeholder="例如：0718">
+      </label>
+      <label>
+        <span class="field-label">有效时间</span>
+        <select id="expires-days">
+          <option value="1">1 天</option>
+          <option value="7" selected>7 天</option>
+          <option value="30">30 天</option>
+          <option value="90">90 天</option>
+        </select>
+      </label>
+      <button id="create-share" class="primary-button" type="submit">生成私密链接</button>
+      <div id="share-result" hidden>
+        <span class="field-label">分享链接</span>
+        <div class="copy-row">
+          <input id="share-url" readonly>
+          <button id="copy-link" type="button">复制</button>
+        </div>
+        <p id="share-expiry" class="dialog-note"></p>
+      </div>
+      <div id="share-friend-panel" class="share-friend-panel" hidden>
+        <span class="field-label">直接分享给好友</span>
+        <div class="share-friend-row">
+          <select id="share-friend-select" aria-label="选择好友"></select>
+          <button id="share-to-friend" type="button">发送给好友</button>
+        </div>
+        <p class="dialog-note">好友会在消息中收到 Demo，可直接打开试听。</p>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="./routes.js"></script>
+  <script src="./mock-api.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
